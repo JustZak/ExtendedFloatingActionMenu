@@ -8,4 +8,17 @@
 	tools:context="com.zl.reik.extendedfloatingactionmenu.MainActivity"
 	tools:showIn="@layout/activity_main">
 
+	<Button
+		android:id="@+id/hide_button"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Hide"/>
+
+	<Button
+		android:id="@+id/show_button"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Show"
+		android:layout_below="@id/hide_button"/>
+
 </RelativeLayout>

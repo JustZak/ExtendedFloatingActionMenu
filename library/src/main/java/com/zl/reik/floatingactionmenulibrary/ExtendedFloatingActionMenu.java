@@ -201,11 +201,17 @@ public class ExtendedFloatingActionMenu extends ViewGroup implements OnCollapseL
                 public void run() {
                     mIsExpanded = false;
                     mChildrenVisible = false;
-                    if (onCollapseListener != null) {
+                    if (null != onCollapseListener) {
                         onCollapseListener.onCollapse();
                     }
                 }
             }, ++counter * ANIMATION_DELAY_PER_ITEM);
+        } else {
+            mIsExpanded = false;
+            mChildrenVisible = false;
+            if (null != onCollapseListener) {
+                onCollapseListener.onCollapse();
+            }
         }
     }
 
@@ -213,10 +219,27 @@ public class ExtendedFloatingActionMenu extends ViewGroup implements OnCollapseL
         collapse(animate, null);
     }
 
+    public void collapseAndHide(final boolean animate) {
+        collapse(animate, this);
+    }
+
+    public void show(final boolean animate) {
+        setClickable(true);
+        if (animate) {
+            mMenuButton.show();
+        } else {
+            mMenuButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hide() {
+        mMenuButton.hide();
+        setClickable(false);
+    }
 
     @Override
     public void onCollapse() {
-
+        hide();
     }
 
 
