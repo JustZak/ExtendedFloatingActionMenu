@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<declare-styleable name="ExtendedFloatingActionMenu">
+		<attr name="fam_menuButtonColor" format="color"/>
+		<attr name="fam_menuButtonColorPressed" format="color"/>
+		<attr name="fam_menuButtonSize" format="enum">
+			<enum name="normal" value="0"/>
+			<enum name="mini" value="1"/>
+		</attr>
+		<attr name="fam_menuButtonIconColor" format="color"/>
+		<attr name="fam_elevation" format="dimension"/>
+	</declare-styleable>
+</resources>
