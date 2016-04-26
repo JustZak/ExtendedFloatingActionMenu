@@ -1,9 +1,12 @@
 package com.zl.reik.floatingactionmenulibrary;
 
 import android.animation.AnimatorSet;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListenerAdapter;
@@ -17,7 +20,7 @@ import android.widget.LinearLayout;
 /**
  * Created by reik on 2/19/16.
  */
-public class ExtendedFloatingActionMenu extends ViewGroup {
+public class ExtendedFloatingActionMenu extends ViewGroup implements OnCollapseListener{
     public static final String TAG = ExtendedFloatingActionMenu.class.getSimpleName();
 
     private static final int ANIMATION_DURATION = 300;
@@ -30,6 +33,7 @@ public class ExtendedFloatingActionMenu extends ViewGroup {
     private int mButtonSpacing;
     private int mButtonCount = 0;
     private boolean mIsExpanded = false;
+    private boolean mChildrenVisible = false;
     private AnimatorSet mExpandAnimation = new AnimatorSet();
     private AnimatorSet mCollapseAnimation = new AnimatorSet();
     private Handler mUiHandler = new Handler();
@@ -57,6 +61,9 @@ public class ExtendedFloatingActionMenu extends ViewGroup {
             getResources().getColor(android.R.color.white));
 
         a.recycle();
+
+        setClipChildren(false);
+        setClipToPadding(false);
 
         mButtonSpacing = (int) (getResources().getDimension(R.dimen.fab_button_spacing));
         mExpandAnimation.setDuration(ANIMATION_DURATION);
@@ -105,8 +112,13 @@ public class ExtendedFloatingActionMenu extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int horizontalCenter = r - l - mMenuButton.getMeasuredWidth() / 2 - getPaddingRight();
         int menuButtonTop = b - t - mMenuButton.getMeasuredHeight() - getPaddingBottom();
+//        if (Build.VERSION.SDK_INT >= 21) {
+//            menuButtonTop -= mMenuButton.getElevation();
+//        }
         int menuButtonLeft = horizontalCenter - mMenuButton.getMeasuredWidth() /2;
-        mMenuButton.layout(menuButtonLeft, menuButtonTop, menuButtonLeft + mMenuButton.getMeasuredWidth(), menuButtonTop + mMenuButton.getMeasuredHeight());
+        int menuBottom = menuButtonTop + mMenuButton.getMeasuredHeight();
+
+        mMenuButton.layout(menuButtonLeft, menuButtonTop, menuButtonLeft + mMenuButton.getMeasuredWidth(), menuBottom);
         int nextY = menuButtonTop - mButtonSpacing;
 
         for (int i = mButtonCount - 1; i >= 0; i--) {
@@ -123,11 +135,6 @@ public class ExtendedFloatingActionMenu extends ViewGroup {
 
             fab.layout(childX, childY, childX + fab.getMeasuredWidth(), childY + fab.getMeasuredHeight());
 
-//            float collapsedTranslation = mMenuButton.getY() - childY;
-//            float expandedTranslation = 0f;
-//
-//            child.setTranslationY(mIsExpanded ? expandedTranslation : collapsedTranslation);
-
             nextY = childY - mButtonSpacing;
         }
     }
@@ -136,8 +143,8 @@ public class ExtendedFloatingActionMenu extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         measureChild(mMenuButton, widthMeasureSpec, heightMeasureSpec);
 
-        int height = 0;
-        int width = 0;
+        int height = mMenuButton.getMeasuredHeight() + getPaddingTop() + getPaddingBottom();
+        int width = mMenuButton.getMeasuredWidth() + getPaddingRight() + getPaddingLeft();
 
         for (int i = 0; i < mButtonCount; i++) {
             View child = getChildAt(i);
@@ -149,13 +156,16 @@ public class ExtendedFloatingActionMenu extends ViewGroup {
             height += child.getMeasuredHeight();
         }
 
-        width += mMenuButton.getMeasuredWidth() + getPaddingRight() + getPaddingLeft();
-        height += mButtonSpacing * (mButtonCount - 1) + getPaddingBottom() + getPaddingTop() + mMenuButton.getMeasuredHeight();
+        if (mChildrenVisible) {
+            height += mButtonSpacing * (mButtonCount - 1);
+        }
+
+        Log.d(TAG, "height: " + height);
 
         setMeasuredDimension(width, height);
     }
 
-    private void collapse(final boolean animate) {
+    public void collapse(final boolean animate, @Nullable final OnCollapseListener onCollapseListener) {
         if (mIsExpanded) {
             mMenuButton.collapse();
             int duration = animate ? ANIMATION_DURATION : 0;
@@ -190,15 +200,30 @@ public class ExtendedFloatingActionMenu extends ViewGroup {
                 @Override
                 public void run() {
                     mIsExpanded = false;
+                    mChildrenVisible = false;
+                    if (onCollapseListener != null) {
+                        onCollapseListener.onCollapse();
+                    }
                 }
             }, ++counter * ANIMATION_DELAY_PER_ITEM);
         }
+    }
+
+    public void collapse(final boolean animate) {
+        collapse(animate, null);
+    }
+
+
+    @Override
+    public void onCollapse() {
+
     }
 
 
     public void expand(final boolean animate) {
         if (!mIsExpanded) {
             Log.d(TAG, "Expand");
+            mChildrenVisible = true;
             mMenuButton.expand();
             int duration = animate ? ANIMATION_DURATION : 0;
             Log.d(TAG, "duration: " + duration);
